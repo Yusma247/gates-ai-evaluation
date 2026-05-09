@@ -24,10 +24,19 @@ class GeminiKeyManager:
             return next(self._cycle)
 
 # Load API keys the same way main.py does
-with open("API_keys.json", "r") as f:
-    config = json.load(f)
+if "GEMINI_API_KEY" in st.secrets:
+    api_key = st.secrets["GEMINI_API_KEY"]
+else:
+    # If not in secrets, try to load from local JSON file (for local testing)
+    try:
+        with open("API_keys.json", "r") as f:
+            keys = json.load(f)
+            api_key = keys.get("GEMINI_API_KEY")
+    except FileNotFoundError:
+        st.error("API Key not found. Please set GEMINI_API_KEY in Streamlit Secrets or API_keys.json")
+        st.stop()
 
-GEMINI_API_KEYS = config.get("GEMINI_API_KEYS", [])
+GEMINI_API_KEYS = [api_key]  # Wrap the single API key in a list
 key_manager = GeminiKeyManager(GEMINI_API_KEYS)
 
 # Word pairs that suggest dangerous medical advice
